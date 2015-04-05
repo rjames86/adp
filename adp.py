@@ -1,13 +1,22 @@
 #!/usr/bin/python
 
 import cookielib
-import getpass
 import os
 import sys
 import time
 import urllib
 import urllib2
 from BeautifulSoup import BeautifulSoup
+
+from keychain import KeyChain
+
+PAYSLIP_PATH = os.path.join(
+    os.path.expanduser('~'),  # Home folder for current user
+    'Dropbox',
+    'Documents',
+    'Payslips',
+    )
+
 
 class PayCheckFetcher:
     paycheck_url = 'https://ipay.adp.com/iPay/private/listDoc.jsf'
@@ -21,7 +30,10 @@ class PayCheckFetcher:
         pm.add_password(None, 'http://agateway.adp.com', username, password)
         # need cookies so auth works properly
         self.cj = cookielib.LWPCookieJar()
-        o = urllib2.build_opener(urllib2.HTTPBasicAuthHandler(pm), urllib2.HTTPCookieProcessor(self.cj))
+        o = urllib2.build_opener(
+            urllib2.HTTPBasicAuthHandler(pm),
+            urllib2.HTTPCookieProcessor(self.cj)
+            )
         urllib2.install_opener(o)
 
         # make an intial request. we need to do this
@@ -30,8 +42,7 @@ class PayCheckFetcher:
         # don't look at referrer)
         self.getResponse(url='https://ipay.adp.com/iPay/private/index.jsf')
 
-
-    # given some data and a url, makes magical request for data using urllib2
+    #  given some data and a url, makes magical request for data using urllib2
     def getResponse(self, data=None, url=None):
         if (url == None):
             url = self.paycheck_url
@@ -42,7 +53,7 @@ class PayCheckFetcher:
 
         # pretend to be chrome so the jsf renders as i expect
         ua = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.19 Safari/534.13'
-        headers = { 'User-Agent' : ua }
+        headers = {'User-Agent': ua}
         req = urllib2.Request(url, data, headers)
         response = urllib2.urlopen(req)
         return response
@@ -96,13 +107,7 @@ class PayCheckFetcher:
         return result
 
     def _generate_file_name(self, filename):
-        payslip_path = os.path.join(
-            os.path.expanduser('~'),
-            'Dropbox',
-            'Documents',
-            'Payslips',
-            )
-        return os.path.join(payslip_path, filename)
+        return os.path.join(PAYSLIP_PATH, filename)
 
     # downloads a file
     def downloadFile(self, url, filename):
@@ -152,16 +157,14 @@ class PayCheckFetcher:
             # 'browse' back to the original page
             soup = self.returnToBrowse(year_soup)
 
+
 def main(argv):
-    if (len(argv) != 1 and len(argv) != 2):
-        print "usage: python adp.py <username> [<password>]"
+    if (len(argv) != 1):
+        print "usage: python adp.py <username>"
         return -1
 
     username = argv[0]
-    if len(argv) == 2:
-        password = argv[1]
-    else:
-        password = getpass.getpass()
+    password = KeyChain().get_password(username, "adp")
 
     fetcher = PayCheckFetcher(username, password)
     fetcher.request()

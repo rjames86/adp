@@ -10,7 +10,7 @@ Python script to download paychecks from ADP
 - Set the path where the payslips will be saved with `PAYSLIP_PATH`
 - Add your ADP password to keychain. Keychain Item Name must be 'adp'
 
-![](https://github.com/rjames/adp/blob/master/adp_keychain.png)
+![](https://github.com/rjames86/adp/blob/keychain/adp_keychain.png)
 
 
 - run `python adp.py <username>`

@@ -95,9 +95,18 @@ class PayCheckFetcher:
                 result[date_key] = checklink['id']
         return result
 
+    def _generate_file_name(self, filename):
+        payslip_path = os.path.join(
+            os.path.expanduser('~'),
+            'Dropbox',
+            'Documents',
+            'Payslips',
+            )
+        return os.path.join(payslip_path, filename)
+
     # downloads a file
     def downloadFile(self, url, filename):
-        path = os.path.abspath(filename)
+        path = self._generate_file_name(filename)
         print 'downloading '+url+' to '+filename
         fd = open(path, 'wb')
         response = self.getResponse(url = url)
@@ -126,8 +135,8 @@ class PayCheckFetcher:
                     reverse=True)
             print 'found '+str(len(paychecks))+' checks in '+year
             for datekey, date_id in paychecks:
-                filename = datekey+'.pdf'
-                if os.path.exists(os.path.abspath(filename)):
+                filename = 'Payslip ' + datekey + '.pdf'
+                if os.path.exists(self._generate_file_name(filename)):
                     # note that this will break if adp adds a new check for
                     # the day you run this on. TODO: i should change the
                     # filename to a key with the check number
